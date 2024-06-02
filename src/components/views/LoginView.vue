@@ -44,13 +44,6 @@ const handleLogin = async (user) => {
 
         // guardo el usuario en el estado 
         userStore.login(userFound)
-        
-        // redireccion por rol
-        if(userFound.rol == 'admin') {
-            router.push('/admin')
-        } else {
-            router.push('/')
-        }
     } catch (err) {
         console.log(err);
     }
