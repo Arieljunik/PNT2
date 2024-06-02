@@ -16,7 +16,7 @@ export const useUserStore = defineStore('userStore', () => {
         _currentUser.value = user
 
         // redireccion por rol
-        if(userFound.rol == 'admin') {
+        if(user.rol == 'admin') {
             _router.push('/admin')
         } else {
             _router.push('/')
