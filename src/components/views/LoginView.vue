@@ -1,7 +1,7 @@
 <template>
     <p>Login</p>
     <div class="flex">
-        {{ store.currentUser }}
+        {{ userStore.currentUser }}
         <input
             v-model="email"
             type="text"
@@ -21,21 +21,34 @@
 import { ref } from 'vue';
 import axios from 'axios';
 import { useUserStore } from '../../stores/UserStore';
-const store = useUserStore()
+import { useRouter } from 'vue-router';
+
+const router = useRouter()
+const userStore = useUserStore()
 const email = ref("")
 const password = ref("")
 
 const handleLogin = async (user) => {
-    const users = await (await axios.get('https://www.mockachino.com/1b143c6b-6b18-43/users')).data.users
+    try {
+        // traigo todos los usuarios
+        const users = await (await axios.get('https://www.mockachino.com/1b143c6b-6b18-43/users')).data.users
+        if(!users){
+            throw 'Error en fetching de usuarios';
+        }
 
-    //ESTO NO FUNCIONA
-    if(await users.find((u) => user.email == u.email && user.password == u.password)){
-        store.login(user)
+        // TODO cambiar condicion del find
+        const userFound = await users.find((u) => user.email == u.email && user.password == u.password)
+        if(!userFound){
+            throw 'El usuario o la contraseña son incorrectos';
+        }
 
-    } else {
-        console.log('NO se encontro al usuario!');
+        // guardo el usuario en el estado 
+        userStore.login(userFound)
+    } catch (err) {
+        console.log(err);
     }
 }
+
 </script>
 <style>
 .flex {

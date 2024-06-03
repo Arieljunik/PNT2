@@ -15,7 +15,8 @@ const router = createRouter({
             component: HomeView
         },  {
             path: '/login',
-            component: LoginView
+            component: LoginView,
+            meta: { hideNavbar: true }
         },  {
             path: '/confirmacion',
             component: ConfirmacionView

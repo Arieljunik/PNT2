@@ -1,20 +1,34 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+
 
 export const useUserStore = defineStore('userStore', () => {
+    const _router = useRouter()
     //State
-    const _currentUser = ref(0)
+    const _currentUser = ref({})
 
     //Getter
     const currentUser = computed(() => _currentUser.value)
 
     //Action
-    //ESTO NO FUNCIONA (login)
-    const login = (user) => {
-        _currentUser = user
+    function login (user) {
+        _currentUser.value = user
+
+        // redireccion por rol
+        if(user.rol == 'admin') {
+            _router.push('/admin')
+        } else {
+            _router.push('/')
+        }
+    }
+
+    function logout () {
+        _currentUser.value = {}
+        _router.push('/login')
     }
     
     const isUserAutenticated = computed(() => _currentUser.value != null)
 
-    return {currentUser, isUserAutenticated, login}
+    return {currentUser, isUserAutenticated, login, logout}
 }) 
