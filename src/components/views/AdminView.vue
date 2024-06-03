@@ -1,6 +1,6 @@
 <template>
     <div>
-      <h1>Admin Page</h1>
+      <h1>Admin Pagina</h1>
       <p>Welcome, Admin!</p>
       <div class="charts">
         <div class="chart">
@@ -21,7 +21,7 @@
   import BarChart from '../charts/BarChart.vue'
   
   const salesData = ref({
-    labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+    labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
     datasets: [
       {
         label: 'Ventas',
@@ -32,7 +32,7 @@
   })
   
   const stockData = ref({
-    labels: ['Product 1', 'Product 2', 'Product 3', 'Product 4', 'Product 5'],
+    labels: ['Producto 1', 'Producto 2', 'Producto 3', 'Producto 4', 'Producto 5'],
     datasets: [
       {
         label: 'Stock',
