@@ -27,8 +27,10 @@ export const useUserStore = defineStore('userStore', () => {
         _currentUser.value = {}
         _router.push('/login')
     }
+
+    const isAdmin = computed(() => _currentUser.value.rol == 'admin')
     
     const isUserAutenticated = computed(() => _currentUser.value != null)
 
-    return {currentUser, isUserAutenticated, login, logout}
+    return {currentUser, isUserAutenticated, isAdmin, login, logout}
 }) 
