@@ -88,7 +88,7 @@ function getTotal() {
 async function confirmCart() {
   try {
     // Obtener el próximo número de compra disponible
-    const purchasesResponse = await axios.get('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/compras');
+    const purchasesResponse = await axios.get('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/Compras');
     const nextPurchaseId = purchasesResponse.data.length ? Math.max(...purchasesResponse.data.map(p => p.idCompra)) + 1 : 1;
 
     console.log('Next Purchase ID:', nextPurchaseId); // Depuración: Verificar el ID de la próxima compra
@@ -102,18 +102,27 @@ async function confirmCart() {
         cantidad: item.quantity,
         userId: '9999', // Usar 9999 como userId
         idCompra: nextPurchaseId,
-        };
+        id: item.id
+      };
       console.log('Enviando datos de compra:', data); // Depuración: Verificar los datos enviados
-      return axios.post('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/compras', data);
+      return axios.post('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/Compras', data);
     });
 
     // Esperar a que todas las solicitudes POST se completen
     await Promise.all(confirmPromises);
 
+    console.log('Compras registradas correctamente');
+
+    // Crear las promesas para eliminar todos los elementos del carrito
+    const deletePromises = cart.value.map(item => axios.delete(`https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/carrito/${item.id}`));
+    // Esperar a que todas las solicitudes DELETE se completen
+    await Promise.all(deletePromises);
+    console.log('Todos los elementos del carrito eliminados correctamente');
+
     // Limpiar el carrito local
     cart.value = [];
 
-    console.log('Carrito confirmado correctamente');
+    console.log('Carrito limpiado correctamente');
   } catch (err) {
     console.error('Error al confirmar el carrito:', err); // Depuración: Imprime el error en la consola
     error.value = 'Error al confirmar el carrito';
@@ -153,3 +162,4 @@ button:hover {
   background-color: #ff4c4c;
 }
 </style>
+   
