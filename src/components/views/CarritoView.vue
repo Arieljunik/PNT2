@@ -46,16 +46,17 @@ const error = ref(null);
 async function fetchCart() {
   try {
     const response = await axios.get('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/carrito');
-    console.log(response.data); // Depuración: Verifica los datos recibidos
+    console.log('Datos recibidos del carrito:', response.data); // Depuración: Verifica los datos recibidos
     cart.value = response.data.map(item => ({
       id: item.id,
-      name: item.Descripcion, // Utilizar Descripcion como nombre
-      quantity: item.Cantidad, // Utilizar Cantidad como cantidad
-      unitPrice: parseFloat(item.Precio) || 0 // Utilizar Precio como precio unitario
+      name: item.nombre, // Utilizar nombre como nombre
+      quantity: item.cantidad, // Utilizar cantidad como cantidad
+      unitPrice: parseFloat(item.precio) || 0, // Utilizar precio como precio unitario
+      codProducto: item.codProducto // Suponiendo que codProducto está en los datos de la API
     }));
-    console.log(cart.value); // Depuración: Verifica los datos mapeados
+    console.log('Carrito mapeado:', cart.value); // Depuración: Verifica los datos mapeados
   } catch (err) {
-    console.error(err); // Depuración: Imprime el error en la consola
+    console.error('Error al cargar los datos del carrito:', err); // Depuración: Imprime el error en la consola
     error.value = 'Error al cargar los datos del carrito';
   } finally {
     loading.value = false;
@@ -73,7 +74,7 @@ async function removeFromCart(id) {
 
     console.log('Producto eliminado del carrito correctamente');
   } catch (err) {
-    console.error(err); // Depuración: Imprime el error en la consola
+    console.error('Error al eliminar el producto del carrito:', err); // Depuración: Imprime el error en la consola
     error.value = 'Error al eliminar el producto del carrito';
   }
 }
@@ -86,18 +87,35 @@ function getTotal() {
 // Función para confirmar el carrito
 async function confirmCart() {
   try {
-    // Filtrar elementos no eliminados y eliminar los eliminados
-    const deletePromises = cart.value.map(item => axios.delete(`https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/carrito/${item.id}`));
-    
-    // Esperar a que todas las solicitudes DELETE se completen antes de continuar
-    await Promise.all(deletePromises);
+    // Obtener el próximo número de compra disponible
+    const purchasesResponse = await axios.get('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/compras');
+    const nextPurchaseId = purchasesResponse.data.length ? Math.max(...purchasesResponse.data.map(p => p.idCompra)) + 1 : 1;
+
+    console.log('Next Purchase ID:', nextPurchaseId); // Depuración: Verificar el ID de la próxima compra
+
+    // Crear las promesas para enviar cada ítem del carrito
+    const confirmPromises = cart.value.map(item => {
+      const data = {
+        codProd: item.codProducto,
+        nombre: item.name,
+        precio: item.unitPrice,
+        cantidad: item.quantity,
+        userId: '9999', // Usar 9999 como userId
+        idCompra: nextPurchaseId,
+        };
+      console.log('Enviando datos de compra:', data); // Depuración: Verificar los datos enviados
+      return axios.post('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/compras', data);
+    });
+
+    // Esperar a que todas las solicitudes POST se completen
+    await Promise.all(confirmPromises);
 
     // Limpiar el carrito local
     cart.value = [];
 
     console.log('Carrito confirmado correctamente');
   } catch (err) {
-    console.error(err); // Depuración: Imprime el error en la consola
+    console.error('Error al confirmar el carrito:', err); // Depuración: Imprime el error en la consola
     error.value = 'Error al confirmar el carrito';
   }
 }
