@@ -1,12 +1,6 @@
 <template>
   <div>
-    <nav>
-      <RouterLink to="/">Home</RouterLink> |
-      <RouterLink to="/carrito">Carrito</RouterLink> |
-      <RouterLink to="/confirmacion">Confirmacion</RouterLink> |
-      <RouterLink to="/login">Login</RouterLink> |
-      <RouterLink v-if="isAdmin" to="/admin">Admin</RouterLink>
-    </nav>
+    <Navbar></Navbar>
     <main>
       <RouterView></RouterView>
     </main>
@@ -16,6 +10,7 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router';
 import { useUserStore } from './stores/UserStore';
+import Navbar from './components/Navbar.vue';
 
 const userStore = useUserStore();
 const isAdmin = userStore.isAdmin;
