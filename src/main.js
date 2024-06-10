@@ -14,22 +14,28 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            component: HomeView
+            component: HomeView,
+            meta: { requiresAuth: true }
         },  {
             path: '/login',
             component: LoginView,
             meta: { hideNavbar: true }
         },  {
             path: '/confirmacion',
-            component: ConfirmacionView
+            component: ConfirmacionView,
+            meta: { requiresAuth: true }
         },  {
             path: '/carrito',
-            component: CarritoView
+            component: CarritoView,
+            meta: { requiresAuth: true }
         },
         { 
             path: '/admin', 
             component: AdminView,
-            //meta: { requiresAdmin: true } 
+            meta: { 
+                requiresAuth: true,
+                requiresAdmin: true 
+            } 
         }
     ],
     history: createWebHistory()
@@ -37,15 +43,24 @@ const router = createRouter({
 
 const pinia = createPinia()
 
-//router.beforeEach((to, from, next) => {
-//    const userStore = useUserStore();
+router.beforeEach((to, from) => {
+    const userStore = useUserStore();
     
-//    if (to.meta.requiresAdmin && !userStore.isAdmin) {
-//        next({ path: '/login' });
-//    } else {
-//        next();
-//    }
-//});
+    // redireccion a "login" si no hay usuario logueado
+    if (to.meta.requiresAuth && !userStore.isUserAutenticated) {
+        return '/login';
+    }
+
+    // cancela redireccion si el usuario es admin y no es una pagina para ese rol
+    if(!to.meta.requiresAdmin && userStore.isAdmin) {
+        return false
+    }
+
+    // cancela redireccion si el usuario no es admin
+    if(to.meta.requiresAdmin && !userStore.isAdmin) {
+        return false
+    }
+});
 
 createApp(App)
 .use(router)
