@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
 
 
@@ -10,6 +10,18 @@ export const useUserStore = defineStore('userStore', () => {
 
     //Getter
     const currentUser = computed(() => _currentUser.value)
+
+    // persistencia del usuario en localStorage
+    if(localStorage.getItem("currentUser")) {
+        _currentUser.value = JSON.parse(localStorage.getItem("currentUser"))
+    }
+    watch(
+        _currentUser,
+        (userVal) => {
+            localStorage.setItem("currentUser", JSON.stringify(userVal))
+        },
+        { deep: true }
+    )
 
     //Action
     function login (user) {
@@ -30,7 +42,7 @@ export const useUserStore = defineStore('userStore', () => {
 
     const isAdmin = computed(() => _currentUser.value.rol == 'admin')
     
-    const isUserAutenticated = computed(() => _currentUser.value != null)
+    const isUserAutenticated = computed(() => _currentUser.value.rol != null)
 
     return {currentUser, isUserAutenticated, isAdmin, login, logout}
-}) 
+})
