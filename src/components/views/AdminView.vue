@@ -16,11 +16,11 @@
       <div class="lists">
         <div class="list">
           <h2>Productos Más Vendidos</h2>
-          <ProductList :products="mostSoldProducts" />
+          <ProductList :products="mostSoldProducts" :can-toggle-offer="false" />
         </div>
         <div class="list">
           <h2>Productos Menos Vendidos</h2>
-          <ProductList :products="leastSoldProducts" />
+          <ProductList :products="leastSoldProducts" @toggle-offer="toggleProductOffer" :can-toggle-offer="true" />
         </div>
       </div>
       <div class="add-product">
@@ -50,11 +50,20 @@
     </div>
     <div class="product-selection">
       <h2>Seleccionar Productos en Oferta</h2>
-      <div v-for="product in allProducts" :key="product.id" class="checkbox-container">
-        <input type="checkbox" :id="product.id" :value="product" v-model="selectedProducts">
-        <label :for="product.id">{{ product.name }}</label>
+      <div class="product-table">
+        <div class="product-row header">
+          <span>Producto</span>
+          <span>Estado</span>
+          <span>Acción</span>
+        </div>
+        <div v-for="product in allProducts" :key="product.id" class="product-row">
+          <span>{{ product.name }}</span>
+          <span :class="product.enOferta ? 'offer-yes' : 'offer-no'">
+            {{ product.enOferta ? 'Sí' : 'No' }}
+          </span>
+          <button @click="toggleProductOffer(product)">Cambiar Estado</button>
+        </div>
       </div>
-      <button @click="saveSelectedProducts">Guardar</button>
     </div>
   </div>
 </template>
@@ -135,7 +144,7 @@ const fetchProducts = async () => {
 };
 
 const saveSelectedProducts = async () => {
-  // Actualizar el estado de enOferta a true en la API
+  // Actualizar el estado de enOferta en la API
   const updatedProducts = selectedProducts.value.map(product => {
     return axios.put(`https://665b22b5003609eda45ff22a.mockapi.io/productos/${product.id}`, {
       ...product,
@@ -145,7 +154,7 @@ const saveSelectedProducts = async () => {
 
   try {
     await Promise.all(updatedProducts);
-    alert('Productos en oferta actualizados con éxito');
+    //alert('Productos en oferta actualizados con éxito');
     fetchProducts(); // Actualizar la lista de productos después de guardar
   } catch (error) {
     console.error('Error al actualizar los productos en oferta:', error);
@@ -167,20 +176,25 @@ const addProduct = async () => {
       codProd: 0,
       enOferta: false
     };
-    alert('Producto agregado con éxito');
+    //alert('Producto agregado con éxito');
   } catch (error) {
     console.error('Error al agregar el producto:', error);
   }
 };
 
+const toggleProductOffer = async (product) => {
+  try {
+    product.enOferta = !product.enOferta;
+    await axios.put(`https://665b22b5003609eda45ff22a.mockapi.io/productos/${product.id}`, product);
+    //alert(`Producto ${product.name} actualizado con éxito`);
+    fetchProducts(); // Actualizar la lista de productos después de guardar
+  } catch (error) {
+    console.error('Error al actualizar el producto:', error);
+  }
+};
+
 onMounted(() => {
   fetchProducts();
-
-  // Cargar productos seleccionados desde el almacenamiento local
-  const savedProducts = JSON.parse(localStorage.getItem('selectedProducts'));
-  if (savedProducts) {
-    selectedProducts.value = savedProducts;
-  }
 });
 </script>
 
@@ -204,7 +218,7 @@ onMounted(() => {
 }
 
 .chart, .list, .add-product {
-  background: white;
+  background: rgb(255, 255, 255);
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -214,10 +228,18 @@ onMounted(() => {
   margin-top: 2rem;
 }
 
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
+.product-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.product-row {
+  display: contents;
+}
+
+.header {
+  font-weight: bold;
 }
 
 .add-product form {
@@ -248,5 +270,13 @@ onMounted(() => {
 
 .add-product button:hover {
   background-color: #1E88E5;
+}
+
+.offer-yes {
+  color: green;
+}
+
+.offer-no {
+  color: red;
 }
 </style>
