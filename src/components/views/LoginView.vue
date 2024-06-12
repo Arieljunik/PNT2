@@ -1,6 +1,7 @@
 <template>
     <div class="container">
         <h2>Login</h2>
+        <p v-if="hasError" class="error">{{ error }}</p>
         <form action="#">
             <div class="data">
                 <label for="email">Mail</label>
@@ -27,22 +28,23 @@
     </div>
 </template>
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
 import { useUserStore } from '../../stores/UserStore';
-import { useRouter } from 'vue-router';
 
-const router = useRouter()
 const userStore = useUserStore()
 const email = ref("")
 const password = ref("")
+const error = ref("")
+
+const hasError = computed(() => error.value.length != 0)
 
 const handleLogin = async (user) => {
     try {
         // traigo todos los usuarios
         const users = await (await axios.get('https://www.mockachino.com/1b143c6b-6b18-43/users')).data.users
         if(!users){
-            throw 'Error en fetching de usuarios';
+            throw 'No se pudo conectar con el servicio de usuarios';
         }
 
         // TODO cambiar condicion del find
@@ -53,7 +55,7 @@ const handleLogin = async (user) => {
         // guardo el usuario en el estado 
         userStore.login(userFound)
     } catch (err) {
-        console.log(err);
+        error.value = err
     }
 }
 
@@ -94,6 +96,10 @@ form button {
     height: 100%;
     width: 100%;
     background-color: rgb(224, 224, 224);
+}
+
+.error {
+    color: crimson;
 }
 
 </style>
