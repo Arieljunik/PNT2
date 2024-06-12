@@ -53,12 +53,12 @@ router.beforeEach((to, from) => {
 
     // cancela redireccion si el usuario es admin y no es una pagina para ese rol
     if(!to.meta.requiresAdmin && userStore.isAdmin) {
-        return false
+        return '/admin'
     }
 
     // cancela redireccion si el usuario no es admin
     if(to.meta.requiresAdmin && !userStore.isAdmin) {
-        return false
+        return '/'
     }
 });
 
