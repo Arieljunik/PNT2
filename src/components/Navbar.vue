@@ -1,21 +1,21 @@
 <template>
     <nav v-if="!route.meta.hideNavbar">
         <ul>
-            <li><RouterLink to="/">Home</RouterLink></li>
-            <li><RouterLink to="/carrito">Carrito</RouterLink></li>
+            <li v-if="!isAdmin"><RouterLink to="/">Home</RouterLink></li>
+            <li v-if="!isAdmin"><RouterLink to="/carrito">Carrito</RouterLink></li>
+            <li v-if="isAdmin"><RouterLink x to="/admin">Admin</RouterLink></li>
             <li>{{ userStore.currentUser.email }}, {{ userStore.currentUser.rol }}</li>
-            <li><RouterLink v-if="isAdmin" to="/admin">Admin</RouterLink></li>
             <li><button @click="userStore.logout()">Logout</button></li>
         </ul>
     </nav>
 </template>
 <script setup>
+import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { useUserStore } from '../stores/UserStore';
 const userStore = useUserStore();
 const route = useRoute()
-
-const isAdmin = userStore.isAdmin;
+const isAdmin = computed(() => userStore.isAdmin);
 </script>
 <style>
 nav {
