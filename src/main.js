@@ -10,7 +10,7 @@ import CarritoView from './components/views/CarritoView.vue'
 const router = createRouter({
     routes: [
         {
-            path: '/',
+            path: '/home',
             component: HomeView
         },  {
             path: '/login',
