@@ -10,6 +10,34 @@ import { RouterLink, RouterView } from 'vue-router';
   <RouterView></RouterView>
 </template>
 
+
+
+<script>
+import { onMounted } from 'vue';
+import { obtenerProductosActuales, borrarProductos, crearProductos } from './loadProductos';
+
+export default {
+  mounted() {
+    this.cargarProductos();
+  },
+  methods: {
+    async cargarProductos() {
+      try {
+        const productosActuales = await obtenerProductosActuales();
+        await borrarProductos(productosActuales);
+        await crearProductos();
+        console.log('Proceso de carga de productos completado.');
+      } catch (error) {
+        console.error('Error al cargar productos:', error);
+      }
+    }
+  }
+};
+</script>
+
+
+
+
 <style scoped>
 .logo {
   height: 6em;
