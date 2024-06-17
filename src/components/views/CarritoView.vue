@@ -84,6 +84,33 @@ function getTotal() {
   return cart.value.reduce((total, item) => total + item.quantity * item.unitPrice, 0);
 }
 
+// Función para actualizar el stock de los productos
+async function updateProductStock(item) {
+  try {
+    // Obtener el producto actual de la API
+    const productResponse = await axios.get(`https://665b22b5003609eda45ff22a.mockapi.io/productos?codProd=${item.codProducto}`);
+    const product = productResponse.data[0];
+
+    if (!product) {
+      throw new Error(`Producto con codProd ${item.codProducto} no encontrado`);
+    }
+
+    // Calcular el nuevo stock
+    const newStock = product.stock - item.quantity;
+
+    // Enviar solicitud PUT para actualizar el stock del producto
+    await axios.put(`https://665b22b5003609eda45ff22a.mockapi.io/productos/${product.id}`, {
+      ...product,
+      stock: newStock
+    });
+
+    console.log(`Stock del producto ${item.codProducto} actualizado correctamente`);
+  } catch (err) {
+    console.error(`Error al actualizar el stock del producto ${item.codProducto}:`, err); // Depuración: Imprime el error en la consola
+    error.value = `Error al actualizar el stock del producto ${item.codProducto}`;
+  }
+}
+
 // Función para confirmar el carrito
 async function confirmCart() {
   try {
@@ -93,8 +120,8 @@ async function confirmCart() {
 
     console.log('Next Purchase ID:', nextPurchaseId); // Depuración: Verificar el ID de la próxima compra
 
-    // Crear las promesas para enviar cada ítem del carrito
-    const confirmPromises = cart.value.map(item => {
+    // Crear las promesas para enviar cada ítem del carrito y actualizar el stock
+    const confirmPromises = cart.value.map(async item => {
       const data = {
         codProd: item.codProducto,
         nombre: item.name,
@@ -105,13 +132,18 @@ async function confirmCart() {
         id: item.id
       };
       console.log('Enviando datos de compra:', data); // Depuración: Verificar los datos enviados
-      return axios.post('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/Compras', data);
+
+      // Confirmar compra
+      await axios.post('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/Compras', data);
+      
+      // Actualizar el stock del producto
+      await updateProductStock(item);
     });
 
-    // Esperar a que todas las solicitudes POST se completen
+    // Esperar a que todas las solicitudes POST y actualizaciones de stock se completen
     await Promise.all(confirmPromises);
 
-    console.log('Compras registradas correctamente');
+    console.log('Compras registradas y stock actualizado correctamente');
 
     // Crear las promesas para eliminar todos los elementos del carrito
     const deletePromises = cart.value.map(item => axios.delete(`https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/carrito/${item.id}`));
@@ -162,4 +194,3 @@ button:hover {
   background-color: #ff4c4c;
 }
 </style>
-   
