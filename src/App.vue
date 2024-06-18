@@ -11,9 +11,12 @@
 import { RouterLink, RouterView } from 'vue-router';
 import { useUserStore } from './stores/UserStore';
 import Navbar from './components/Navbar.vue';
+import { onMounted } from 'vue';
 
 const userStore = useUserStore();
 const isAdmin = userStore.isAdmin;
+
+
 </script>
 
 <style scoped>
