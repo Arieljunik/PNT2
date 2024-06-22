@@ -72,6 +72,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const allProducts = ref([]);
 const productsOnSale = ref([]);
@@ -79,6 +80,7 @@ const selectedProductsIds = ref([]); // Lista de IDs de productos seleccionados
 const productQuantities = ref({}); // Mapa para las cantidades de cada producto
 const selectedProducts = ref([]); // Lista de productos seleccionados con detalles y cantidad
 const searchQuery = ref(''); // Consulta de búsqueda
+const router = useRouter()
 
 const fetchAllProducts = async () => {
   try {
@@ -154,6 +156,7 @@ const sendSelectedProducts = async () => {
     }));
     const responses = await Promise.all(sendRequests);
     console.log('Productos enviados exitosamente:', responses.map(response => response.data));
+    router.push('/carrito')
   } catch (error) {
     console.error('Error al enviar los productos:', error);
   }
