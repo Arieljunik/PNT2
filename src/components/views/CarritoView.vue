@@ -36,6 +36,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
+
+const router = useRouter()
 
 // Estado del componente
 const cart = ref([]);
@@ -155,6 +158,8 @@ async function confirmCart() {
     cart.value = [];
 
     console.log('Carrito limpiado correctamente');
+    alert("Compra confirmada!")
+    router.push('/')
   } catch (err) {
     console.error('Error al confirmar el carrito:', err); // Depuración: Imprime el error en la consola
     error.value = 'Error al confirmar el carrito';
