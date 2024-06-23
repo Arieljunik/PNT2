@@ -1,7 +1,34 @@
 <template>
   <div>
     <h1>Home Page</h1>
-    <h2>Productos en Oferta</h2> 
+    <h2>Productos en Oferta</h2>
+
+    <!-- Esta es la lista de productos hecha con <table> -->
+    <!-- <table>
+      <tbody>
+        <tr v-for="product in productsOnSale" :key="product.id">
+          <td>
+            <input
+              type="checkbox"
+              :value="product.id"
+              v-model="selectedProductsIds"
+              @change="toggleProductSelection(product)"
+            />
+          </td>
+          <td>{{ product.name }}</td>
+          <td>${{ product.precio }}</td>
+          <td><input
+        type="number"
+        min="1"
+        v-model.number="productQuantities[product.id]"
+        @input="updateQuantity(product.id, $event.target.value)"
+        placeholder="Cantidad"
+        class="quantity-input"
+      /></td>
+        </tr>
+      </tbody>
+    </table> -->
+    
     <div
       v-for="product in productsOnSale"
       :key="product.id"
@@ -33,6 +60,33 @@
       placeholder="Buscar productos..."
       class="search-input"
     />
+
+    <!-- Esta es la lista de productos hecha con <table> -->
+    <!-- <table>
+      <tbody>
+        <tr v-for="product in filteredProducts" :key="product.id">
+          <td>
+            <input
+              type="checkbox"
+              :value="product.id"
+              v-model="selectedProductsIds"
+              @change="toggleProductSelection(product)"
+            />
+          </td>
+          <td>{{ product.name }}</td>
+          <td class="product-price">${{ product.precio }}</td>
+          <td><input
+        type="number"
+        min="1"
+        v-model.number="productQuantities[product.id]"
+        @input="updateQuantity(product.id, $event.target.value)"
+        placeholder="Cantidad"
+        class="quantity-input"
+      /></td>
+        </tr>
+      </tbody>
+    </table> -->
+
     <div
       v-for="product in filteredProducts"
       :key="product.id"
@@ -231,5 +285,21 @@ onMounted(() => {
 .send-button:hover {
   background-color: #0056b3;
 }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+th {
+  background-color: #f4f4f4;
+  text-align: left;
+}
+
 </style>
 
