@@ -1,26 +1,44 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router';
-</script>
-
 <template>
   <div>
-    <RouterLink to="/home">Home</RouterLink> |
-    <RouterLink to="/carrito">Carrito</RouterLink>
+    <Navbar></Navbar>
+    <main>
+      <RouterView></RouterView>
+    </main>
   </div>
-  <RouterView></RouterView>
 </template>
 
+<script setup>
+import { RouterLink, RouterView } from 'vue-router';
+import { useUserStore } from './stores/UserStore';
+import Navbar from './components/Navbar.vue';
+import { onMounted } from 'vue';
+
+const userStore = useUserStore();
+const isAdmin = userStore.isAdmin;
+
+
+</script>
+
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+nav {
+  background-color: #2c3e50;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+nav a {
+  color: white;
+  margin: 0 1rem;
+  text-decoration: none;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+main {
+  padding: 5rem 2rem 2rem;
 }
 </style>
