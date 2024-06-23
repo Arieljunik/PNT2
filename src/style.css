@@ -65,6 +65,9 @@ button:focus-visible {
   text-align: center;
 }
 
+tr:nth-child(even){background-color: #eaebf1;}
+
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -77,3 +80,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
