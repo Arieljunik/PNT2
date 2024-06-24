@@ -37,8 +37,13 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../../stores/UserStore';
 
 const router = useRouter()
+const userStore = useUserStore()
+
+// Id del Usuario
+const _userId = userStore.currentUser 
 
 // Estado del componente
 const cart = ref([]);
@@ -130,7 +135,7 @@ async function confirmCart() {
         nombre: item.name,
         precio: item.unitPrice,
         cantidad: item.quantity,
-        userId: '9999', // Usar 9999 como userId
+        userId: _userId.id,
         idCompra: nextPurchaseId,
         id: item.id
       };
