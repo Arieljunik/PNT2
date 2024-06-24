@@ -1,16 +1,10 @@
 <template>
   <div class="admin-container">
-    <h1>Admin Page</h1>
-    <p>Welcome, Admin!</p>
-    <div class="content-grid">
-      <div class="chart">
-        <h2>Ventas de Productos</h2>
-        <LineChart :chart-data="salesData" />
-      </div>
-      <div class="chart">
-        <h2>Stock de Productos</h2>
-        <BarChart :chart-data="stockData" />
-      </div>
+    <h1>Tablero de Administrador</h1>
+    <p>Informes generales</p>
+    <div class="chart">
+      <h2>Visualización del Stock</h2>
+      <canvas id="stockBarChart"></canvas>
     </div>
     <div class="lists-form-container">
       <div class="lists">
@@ -65,42 +59,30 @@
         </div>
       </div>
     </div>
+    <div class="sales-list">
+      <h2>Listado de Ventas de Productos</h2>
+      <ul>
+        <li v-for="product in allProducts" :key="product.id">
+          {{ product.name }}: {{ product.sales !== undefined ? product.sales : 'No sales data' }} ventas
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import LineChart from '../charts/LineChart.vue';
-import BarChart from '../charts/BarChart.vue';
 import ProductList from '../ProductList.vue';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, BarController, CategoryScale, LinearScale } from 'chart.js';
 
-const salesData = ref({
-  labels: [],
-  datasets: [
-    {
-      label: 'Ventas',
-      backgroundColor: '#42A5F5',
-      data: []
-    }
-  ]
-});
-
-const stockData = ref({
-  labels: [],
-  datasets: [
-    {
-      label: 'Stock',
-      backgroundColor: '#66BB6A',
-      data: []
-    }
-  ]
-});
+ChartJS.register(Title, Tooltip, Legend, BarElement, BarController, CategoryScale, LinearScale);
 
 const mostSoldProducts = ref([]);
 const leastSoldProducts = ref([]);
 const allProducts = ref([]);
 const selectedProducts = ref([]);
+let stockChart = null;
 
 const newProduct = ref({
   name: '',
@@ -111,21 +93,61 @@ const newProduct = ref({
   enOferta: false
 });
 
+const updateStockChart = () => {
+  const stock = allProducts.value.map(product => product.stock);
+  const labels = allProducts.value.map(product => product.name);
+  const backgroundColors = stock.map(value => value < 5 ? 'red' : value < 10 ? 'orange' : '#66BB6A');
+
+  if (stockChart) {
+    stockChart.destroy();
+  }
+
+  const ctx = document.getElementById('stockBarChart').getContext('2d');
+  stockChart = new ChartJS(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Stock',
+        backgroundColor: backgroundColors,
+        data: stock
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+};
+
 const fetchProducts = async () => {
   try {
-    const response = await axios.get('https://665b22b5003609eda45ff22a.mockapi.io/productos');
-    const products = response.data;
+    const [productosResponse, comprasResponse] = await Promise.all([
+      axios.get('https://665b22b5003609eda45ff22a.mockapi.io/productos'),
+      axios.get('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/Compras')
+    ]);
 
-    // Procesar datos para los gráficos
-    const sales = products.map(product => product.sales);
-    const stock = products.map(product => product.stock);
-    const labels = products.map(product => product.name);
+    const products = productosResponse.data;
+    const compras = comprasResponse.data;
 
-    salesData.value.labels = labels;
-    salesData.value.datasets[0].data = sales;
+    // Crear un diccionario para mapear las cantidades de compras a cada producto
+    const ventasPorProducto = {};
+    compras.forEach(compra => {
+      const productoId = compra.codProd;
+      if (ventasPorProducto[productoId]) {
+        ventasPorProducto[productoId] += parseInt(compra.cantidad);
+      } else {
+        ventasPorProducto[productoId] = parseInt(compra.cantidad);
+      }
+    });
 
-    stockData.value.labels = labels;
-    stockData.value.datasets[0].data = stock;
+    // Añadir la propiedad 'sales' a cada producto basado en el diccionario de ventas
+    products.forEach(product => {
+      product.sales = ventasPorProducto[product.codProd] || 0;
+    });
 
     // Ordenar productos por cantidad de ventas de mayor a menor
     const sortedProducts = products.sort((a, b) => b.sales - a.sales);
@@ -138,6 +160,9 @@ const fetchProducts = async () => {
 
     // Guardar todos los productos para la selección
     allProducts.value = products;
+
+    // Actualizar el gráfico
+    updateStockChart();
   } catch (error) {
     console.error('Error al obtener los productos:', error);
   }
@@ -154,7 +179,6 @@ const saveSelectedProducts = async () => {
 
   try {
     await Promise.all(updatedProducts);
-    //alert('Productos en oferta actualizados con éxito');
     fetchProducts(); // Actualizar la lista de productos después de guardar
   } catch (error) {
     console.error('Error al actualizar los productos en oferta:', error);
@@ -166,8 +190,20 @@ const saveSelectedProducts = async () => {
 
 const addProduct = async () => {
   try {
-    const response = await axios.post('https://665b22b5003609eda45ff22a.mockapi.io/productos', newProduct.value);
-    allProducts.value.push(response.data);
+    const productResponse = await axios.post('https://665b22b5003609eda45ff22a.mockapi.io/productos', newProduct.value);
+    const newProductId = productResponse.data.id;
+
+    // Agregar el nuevo producto a la lista de compras con cantidad 0 inicialmente
+    await axios.post('https://665ca0c93e4ac90a04da2a33.mockapi.io/PNT2/Compras', {
+      codProd: newProductId,
+      nombre: newProduct.value.name,
+      precio: newProduct.value.precio,
+      cantidad: 0,
+      userId: "9999",
+      idCompra: "9999"
+    });
+
+    allProducts.value.push(productResponse.data);
     newProduct.value = {
       name: '',
       stock: 0,
@@ -176,7 +212,8 @@ const addProduct = async () => {
       codProd: 0,
       enOferta: false
     };
-    //alert('Producto agregado con éxito');
+    updateStockChart(); // Actualizar el gráfico después de agregar un producto
+    fetchProducts(); // Refrescar la lista de productos después de agregar uno nuevo
   } catch (error) {
     console.error('Error al agregar el producto:', error);
   }
@@ -186,7 +223,6 @@ const toggleProductOffer = async (product) => {
   try {
     product.enOferta = !product.enOferta;
     await axios.put(`https://665b22b5003609eda45ff22a.mockapi.io/productos/${product.id}`, product);
-    //alert(`Producto ${product.name} actualizado con éxito`);
     fetchProducts(); // Actualizar la lista de productos después de guardar
   } catch (error) {
     console.error('Error al actualizar el producto:', error);
@@ -201,11 +237,13 @@ onMounted(() => {
 <style scoped>
 .admin-container {
   padding: 2rem;
+  background-color: #f9f9f9;
+  min-height: 100vh;
 }
 
 .content-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 2rem;
   align-items: start;
 }
@@ -218,7 +256,7 @@ onMounted(() => {
 }
 
 .chart, .list, .add-product {
-  background: rgb(255, 255, 255);
+  background: #fff;
   padding: 1rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -278,5 +316,29 @@ onMounted(() => {
 
 .offer-no {
   color: red;
+}
+
+.list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.list ul li {
+  background: #f0f0f0;
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.chart-container {
+  width: 100%;
+}
+
+.sales-list {
+  margin-top: 2rem;
+  background: #fff;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 </style>
